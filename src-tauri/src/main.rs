@@ -17,7 +17,12 @@ fn main() {
             commands::api_key::save_api_key,
             commands::api_key::get_api_key,
             commands::api_key::validate_api_key,
-            commands::api_key::delete_api_key
+            commands::api_key::delete_api_key,
+            commands::settings::save_ai_settings,
+            commands::settings::get_ai_settings,
+            commands::settings::get_default_provider,
+            commands::settings::validate_provider_api_key,
+            commands::settings::fetch_available_models
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

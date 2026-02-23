@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import TerminalOutput from './TerminalOutput';
 import TerminalInput from './TerminalInput';
 import PasswordDialog from '../PasswordDialog';
+import Settings from '../Settings';
 import useTerminal from '../../hooks/useTerminal';
 import useCommandProcessor from './CommandProcessor';
 
@@ -31,30 +32,27 @@ const Terminal: React.FC = () => {
         clearTerminal
     });
 
-    // Check if API key exists on startup
+    const [showSettings, setShowSettings] = useState(false);
+
+    // Check if AI settings exist on startup
     useEffect(() => {
         let mounted = true;
 
-        const checkApiKey = async () => {
+        const checkSettings = async () => {
             try {
-                const apiKey = await invoke<string>('get_api_key');
-                if (!apiKey && mounted) {
-                    // Only show one message about API key
+                const defaultProvider = await invoke<[string, { api_key: string; model: string; is_default: boolean }] | null>('get_default_provider');
+                if (!defaultProvider && mounted) {
                     appendHistory({
                         type: 'output',
-                        content: 'No API key found. Please set your OpenAI API key to use AI features.'
-                    });
-                    appendHistory({
-                        type: 'output',
-                        content: 'You can set your API key by typing: setapikey YOUR_API_KEY'
+                        content: 'No AI provider configured. Click the settings button (⚙️) in the top-right corner to configure your AI provider.'
                     });
                 }
             } catch (error) {
-                console.error('Failed to check API key:', error);
+                console.error('Failed to check AI settings:', error);
             }
         };
 
-        checkApiKey();
+        checkSettings();
 
         return () => {
             mounted = false;
@@ -62,7 +60,35 @@ const Terminal: React.FC = () => {
     }, []);
 
     return (
-        <div className="flex flex-col h-screen w-screen bg-gray-900 text-white">
+        <div className="flex flex-col h-screen w-screen bg-gray-900 text-white relative">
+            {/* Settings Button */}
+            <button
+                onClick={() => setShowSettings(true)}
+                className="absolute top-4 right-4 z-10 bg-gray-800 hover:bg-gray-700 text-white p-3 rounded-full shadow-lg transition-colors"
+                title="AI Settings"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                </svg>
+            </button>
+
             <TerminalOutput history={history} isProcessing={isProcessing} />
 
             <TerminalInput
@@ -80,6 +106,11 @@ const Terminal: React.FC = () => {
                 }}
                 onSubmit={handleSudoWithPassword}
                 commandText={pendingSudoCommand}
+            />
+
+            <Settings
+                isOpen={showSettings}
+                onClose={() => setShowSettings(false)}
             />
         </div>
     );

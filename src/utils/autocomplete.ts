@@ -16,7 +16,7 @@ const COMMON_COMMANDS = [
     'locate', 'mount', 'umount', 'df', 'free', 'uptime', 'date', 'cal',
     'passwd', 'su', 'adduser', 'useradd', 'deluser', 'userdel', 'groupadd',
     'groups', 'hostname', 'uname', 'lsblk', 'fdisk', 'parted', 'dd',
-    'xargs', 'awk', 'sed', 'sort', 'uniq', 'cut', 'tr', 'tee', 'less', 'more', 'setapikey', 'resetapikey'
+    'xargs', 'awk', 'sed', 'sort', 'uniq', 'cut', 'tr', 'tee', 'less', 'more'
 ];
 
 

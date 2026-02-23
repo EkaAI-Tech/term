@@ -43,88 +43,13 @@ const useCommandProcessor = ({
             return;
         }
 
-        // Handle API key related commands
-        if (input.trim() === 'apikey' || input.trim() === 'api-key') {
-            try {
-                const apiKey = await invoke<string>('get_api_key');
-                if (apiKey) {
-                    appendHistory({
-                        content: 'API key is configured.',
-                        type: 'output'
-                    });
-                } else {
-                    appendHistory({
-                        content: 'No API key configured. Use "setapikey <your-key>" to set it.',
-                        type: 'error'
-                    });
-                }
-            } catch (error) {
-                appendHistory({
-                    content: `Error checking API key: ${error}`,
-                    type: 'error'
-                });
-            }
-            setInput('');
-            setIsProcessing(false);
-            return;
-        }
-
-        if (input.trim().startsWith('setapikey ')) {
-            const key = input.trim().substring('setapikey '.length).trim();
-            if (!key) {
-                appendHistory({
-                    content: 'Please provide an API key. Usage: setapikey <your-openai-api-key>',
-                    type: 'error'
-                });
-                setInput('');
-                setIsProcessing(false);
-                return;
-            }
-
-            appendHistory({ content: 'Validating API key...', type: 'output' });
-            try {
-                const isValid = await invoke<boolean>('validate_api_key', { key });
-                if (isValid) {
-                    await invoke('save_api_key', { key });
-                    appendHistory({
-                        content: 'API key validated and saved successfully!',
-                        type: 'output'
-                    });
-                } else {
-                    appendHistory({
-                        content: 'Invalid API key. Please check and try again.',
-                        type: 'error'
-                    });
-                }
-            } catch (error) {
-                // The error message now contains detailed information from Rust
-                appendHistory({
-                    content: `API Error: ${error}`,
-                    type: 'error'
-                });
-            }
-            setInput('');
-            setIsProcessing(false);
-            return;
-        }
-
-        if (input.trim() === 'resetapikey') {
-            try {
-                await invoke('delete_api_key');
-                appendHistory({
-                    content: 'API key has been removed successfully.',
-                    type: 'output'
-                });
-                appendHistory({
-                    content: 'You can set a new API key with the command: setapikey YOUR_API_KEY',
-                    type: 'output'
-                });
-            } catch (error) {
-                appendHistory({
-                    content: `Error removing API key: ${error}`,
-                    type: 'error'
-                });
-            }
+        // Handle API key related commands - redirect to settings UI
+        if (input.trim() === 'apikey' || input.trim() === 'api-key' || 
+            input.trim().startsWith('setapikey') || input.trim() === 'resetapikey') {
+            appendHistory({
+                content: 'API key management has been moved to the Settings UI.',
+                type: 'output'
+            });
             setInput('');
             setIsProcessing(false);
             return;
@@ -183,15 +108,11 @@ const useCommandProcessor = ({
                     const result = await invoke<string>("ask_llm", { prompt: parsed.prompt });
                     appendHistory({ type: 'llm', content: result.trim() });
                 } catch (error: any) {
-                    // Handle API key not configured errors
-                    if (error.toString().includes("API key not configured")) {
+                    // Handle API configuration errors
+                    if (error.toString().includes("not configured") || error.toString().includes("No default")) {
                         appendHistory({
                             type: 'error',
-                            content: 'API key not configured. Please set your OpenAI API key to use AI features.'
-                        });
-                        appendHistory({
-                            type: 'output',
-                            content: 'Use the command: setapikey YOUR_API_KEY'
+                            content: 'No AI provider configured. Click the settings button (⚙️) in the top-right corner to configure your AI provider.'
                         });
                     } else {
                         appendHistory({ type: 'error', content: `${error.message || error}` });
@@ -202,15 +123,11 @@ const useCommandProcessor = ({
                     const fallback = await invoke<string>("ask_llm", { prompt: input });
                     appendHistory({ type: 'llm', content: fallback.trim() });
                 } catch (error: any) {
-                    // Handle API key not configured errors
-                    if (error.toString().includes("API key not configured")) {
+                    // Handle API configuration errors
+                    if (error.toString().includes("not configured") || error.toString().includes("No default")) {
                         appendHistory({
                             type: 'error',
-                            content: 'API key not configured. Please set your OpenAI API key to use AI features.'
-                        });
-                        appendHistory({
-                            type: 'output',
-                            content: 'Use the command: setapikey YOUR_API_KEY'
+                            content: 'No AI provider configured. Click the settings button (⚙️) in the top-right corner to configure your AI provider.'
                         });
                     } else {
                         appendHistory({ type: 'error', content: `${error.message || error}` });
