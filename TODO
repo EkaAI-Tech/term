@@ -9,10 +9,10 @@ DONE: Fix the cd command
 SCRAPED: change command to change the API key # Scraped as we have new settings popup to manage the things
 
 DONE: Add support to various AI models like gemini, groq, etc
-add markdown support
+DONE: add markdown support
+DONE: clickable links
 add proper updates to the command like sync/update (for progress)
 handle nano/vim
-clickable links
 write tests for each of above
 Persistent history
 API key in build

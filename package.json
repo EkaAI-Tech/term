@@ -17,6 +17,7 @@
         "prepare": "husky"
     },
     "dependencies": {
+        "@tauri-apps/plugin-shell": "^2.3.5",
         "eslint-define-config": "^2.1.0",
         "react": "^19.1.0",
         "react-dom": "^19.1.0"
