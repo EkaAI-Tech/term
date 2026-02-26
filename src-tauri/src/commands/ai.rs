@@ -1,4 +1,37 @@
 use crate::commands::settings::get_default_provider;
+use std::fs;
+
+fn get_os_name() -> String {
+    #[cfg(target_os = "windows")]
+    {
+        return "Windows".to_string();
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        return "macOS".to_string();
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(contents) = fs::read_to_string("/etc/os-release") {
+            for line in contents.lines() {
+                if line.starts_with("PRETTY_NAME=") {
+                    return line
+                        .trim_start_matches("PRETTY_NAME=")
+                        .trim_matches('"')
+                        .to_string();
+                }
+            }
+        }
+        return "Linux (Unknown Distro)".to_string();
+    }
+
+    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+    {
+        "Unknown OS".to_string()
+    }
+}
 
 #[tauri::command]
 pub async fn ask_llm(prompt: String, app_handle: tauri::AppHandle) -> Result<String, String> {
@@ -13,26 +46,25 @@ pub async fn ask_llm(prompt: String, app_handle: tauri::AppHandle) -> Result<Str
         return Err("API key not configured. Please configure your AI provider in settings.".to_string());
     }
 
-    let os_name = if cfg!(target_os = "windows") {
-        "Windows"
-    } else if cfg!(target_os = "macos") {
-        "macOS"
-    } else if cfg!(target_os = "linux") {
-        "Linux"
-    } else {
-        "Unknown OS"
-    };
+    let os_name = get_os_name();
 
     let system_prompt = format!(
-        "You are AI running in terminal called Term, a lightweight terminal assistant. You are running on {os_name}. \
-        Your job is to help users with their terminal commands and queries. \
-        If you detect a misspelled command, suggest the correct one. \
-        If the user asks for help, command explanation, or summarization, provide \
-        concise, accurate information. \
-        For technical questions, give short, practical answers focused on terminal usage. \
-        If asked to run a destructive command, warn the user about potential consequences. \
-        If asked for irrelevant information, politely tell that you can't help with that. \
-        Keep responses brief, informative, and focused on helping the user accomplish their task."
+        "You are Term, a lightweight AI terminal assistant running on {}.
+        Your purpose is to help users with terminal-related tasks, commands, and shell workflows.
+        Rules:
+        - Provide concise, practical answers focused strictly on terminal usage.
+        - When suggesting commands, include comments INSIDE the code block (using # for shell comments) to explain their purpose.
+        - Use single backticks for inline commands and triple backticks for multi-line commands or scripts.
+        - Comments must be on the same line as the command or within the same code block, prefixed with # (e.g., `command # explanation`).
+        - Do not add unnecessary blank lines or verbose explanations.
+        - If a command appears misspelled, suggest the correct command.
+        - If a command is potentially destructive (data loss, system modification, privilege escalation, disk overwrite, recursive deletion, formatting, etc.), place the warning OUTSIDE code block as regular text, then show the command in a separate code block.
+        - Never fabricate command output.
+        - If unsure about a command or flag, say so instead of guessing.
+        - If the request is unrelated to terminal usage, respond briefly that this assistant only handles terminal-related queries.
+        - Do not use decorative bullets, extra newlines, emojis or decorative formatting.
+        - Keep responses compact and terminal-appropriate.",
+        os_name
     );
 
     match provider.as_str() {

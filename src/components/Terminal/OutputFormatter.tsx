@@ -1,10 +1,17 @@
 import React from 'react';
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface OutputFormatterProps {
     content: string;
+    isMarkdown?: boolean;
 }
 
-const OutputFormatter: React.FC<OutputFormatterProps> = ({ content }) => {
+const OutputFormatter: React.FC<OutputFormatterProps> = ({ content, isMarkdown = false }) => {
+    // Render markdown for AI responses
+    if (isMarkdown) {
+        return <MarkdownRenderer content={content} />;
+    }
+
     if (content.includes("{DIR}") || content.includes("{FILE}") || content.includes("{LINK}")) {
         const lines = content.split('\n');
         return (
@@ -12,7 +19,7 @@ const OutputFormatter: React.FC<OutputFormatterProps> = ({ content }) => {
                 {lines.map((line, i) => {
                     // Directory line
                     if (line.includes("{DIR}")) {
-                        const cleanLine = line.replace("{DIR}", "").replace("{/DIR}", "");
+                        const cleanLine = line.replace(/\{DIR\}/g, "").replace(/\{\/DIR\}/g, "");
 
                         let displayName = cleanLine;
 
@@ -38,7 +45,7 @@ const OutputFormatter: React.FC<OutputFormatterProps> = ({ content }) => {
                     }
                     // Symlink line
                     else if (line.includes("{LINK}")) {
-                        const cleanLine = line.replace("{LINK}", "").replace("{/LINK}", "");
+                        const cleanLine = line.replace(/\{LINK\}/g, "").replace(/\{\/LINK\}/g, "");
                         return (
                             <div key={i} className="text-cyan-300">
                                 <span className="mr-2">🔗</span>
@@ -48,7 +55,7 @@ const OutputFormatter: React.FC<OutputFormatterProps> = ({ content }) => {
                     }
                     // File line
                     else if (line.includes("{FILE}")) {
-                        const cleanLine = line.replace("{FILE}", "").replace("{/FILE}", "");
+                        const cleanLine = line.replace(/\{FILE\}/g, "").replace(/\{\/FILE\}/g, "");
 
                         const isExecutable = cleanLine.match(/-[-r][-w]x/);
                         const isImage = /\.(jpg|jpeg|png|gif|bmp|svg|webp)$/i.test(cleanLine);
