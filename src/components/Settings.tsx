@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { open } from '@tauri-apps/plugin-shell';
 
 interface AiSettings {
     providers: {
@@ -62,6 +63,14 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
     }, [isOpen, onClose]);
+
+    const openExternalLink = async (url: string) => {
+        try {
+            await open(url);
+        } catch (error) {
+            console.error('Failed to open link:', error);
+        }
+    };
 
     const loadSettings = async () => {
         try {
@@ -389,7 +398,32 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                                 <div>
                                     <h4 className="text-lg font-semibold text-white mb-2">Version</h4>
                                     <p>Term v0.1.0</p>
-                                    <p>Created by <a href="https://github.com/sapatevaibhav">sapatevaibhav</a></p>
+                                    <p className="mt-2">
+                                        Created by{' '}
+                                        <button
+                                            onClick={() => openExternalLink('https://github.com/sapatevaibhav')}
+                                            className="text-blue-400 hover:text-blue-300 underline cursor-pointer"
+                                        >
+                                            sapatevaibhav
+                                        </button>
+                                    </p>
+                                </div>
+                                <div>
+                                    <h4 className="text-lg font-semibold text-white mb-2">Links</h4>
+                                    <div className="space-y-2">
+                                        <button
+                                            onClick={() => openExternalLink('https://github.com/sapatevaibhav/term')}
+                                            className="block text-blue-400 hover:text-blue-300 cursor-pointer"
+                                        >
+                                            GitHub Repository
+                                        </button>
+                                        <button
+                                            onClick={() => openExternalLink('https://github.com/sapatevaibhav/term/issues')}
+                                            className="block text-blue-400 hover:text-blue-300 cursor-pointer"
+                                        >
+                                            Report Issues
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

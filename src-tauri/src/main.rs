@@ -7,6 +7,7 @@ fn main() {
     dotenvy::dotenv().ok();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             commands::shell::run_shell,
             commands::shell::run_sudo_command,
