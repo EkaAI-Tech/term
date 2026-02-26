@@ -40,12 +40,13 @@ const TerminalOutput: React.FC<TerminalOutputProps> = ({ history, isProcessing }
                             {entry.content}
                         </>
                     )}
-                    {entry.type === 'llm' && <span className="inline-block bg-green-600 text-black font-bold px-1.5 rounded mr-2">AI</span>}
                     {entry.type === 'separator' && <div className="border-b border-gray-700 my-2 opacity-30"></div>}
                     {entry.type !== 'separator' && entry.type !== 'command' && (
                         entry.type === 'output' && typeof entry.content === 'string' &&
                         (entry.content.includes("{DIR}") || entry.content.includes("{FILE}") || entry.content.includes("{LINK}"))
                             ? <OutputFormatter content={entry.content} />
+                            : entry.type === 'llm' && typeof entry.content === 'string'
+                            ? <OutputFormatter content={entry.content} isMarkdown={true} />
                             : entry.content
                     )}
                 </div>

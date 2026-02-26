@@ -1,54 +1,21 @@
-# Developer Certificate of Origin (DCO) Check
-# This workflow ensures all commits are signed off according to DCO requirements
-# DCO helps establish a clear chain of custody for contributions
-
 name: DCO Check
 
 on:
   pull_request:
-    # Only run on relevant PR events to save CI resources
     types: [opened, synchronize, reopened]
-    # Target branches where DCO compliance is required
-    branches: [ master, main ]
+    branches: [master]
 
 jobs:
   dco-check:
     runs-on: ubuntu-latest
-    name: Developer Certificate of Origin Check
-    
-    # Add timeout to prevent hanging workflows
-    timeout-minutes: 5
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Get PR Commits
+        id: 'get-pr-commits'
+        uses: tim-actions/get-pr-commits@master
         with:
-          # Fetch full history to check all commits in PR
-          fetch-depth: 0
-          # Use token for private repos if needed
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run DCO Check
-        uses: dcoapp/dco@v1.0.4
+      - name: DCO Check
+        uses: tim-actions/dco@master
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          # Enable verbose output for better debugging
-          verbose: true
-
-      - name: DCO Check Results
-        if: failure()
-        run: |
-          echo "❌ DCO check failed!"
-          echo "All commits must be signed off with 'Signed-off-by: Your Name <your.email@example.com>'"
-          echo "To fix this, you can:"
-          echo "1. Add 'Signed-off-by' to your commit messages manually"
-          echo "2. Use 'git commit -s' for future commits"
-          echo "3. Amend existing commits with 'git commit --amend -s'"
-          echo "4. For multiple commits, use 'git rebase --signoff HEAD~n' where n is the number of commits"
-          exit 1
-
-      - name: DCO Check Success
-        if: success()
-        run: |
-          echo "✅ All commits are properly signed off!"
-          echo "DCO compliance verified successfully."
+          commits: ${{ steps.get-pr-commits.outputs.commits }}
