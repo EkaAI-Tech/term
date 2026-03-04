@@ -15,6 +15,7 @@ A cross-platform, AI-powered terminal assistant with custom commands, local API 
 - Terminal-like UI with command history and autocompletion
 - AI-powered responses for natural language queries
 - Custom shell command execution (with sudo/password support)
+- **Built-in text editors: nano and vim with full modal editing support**
 - Secure local storage for API keys
 - Cross-platform: Linux, Windows, macOS (experimental)
 - Colorful output and user-friendly design
