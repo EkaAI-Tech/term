@@ -11,14 +11,18 @@ SCRAPED: change command to change the API key # Scraped as we have new settings 
 DONE: Add support to various AI models like gemini, groq, etc
 DONE: add markdown support
 DONE: clickable links
+DONE: Add support for nano/vim
+DONE: Persistent command history (saved to ~/.term_history)
+
+TODO:
 add proper updates to the command like sync/update (for progress)
-handle nano/vim
 write tests for each of above
-Persistent history
 API key in build
 change model to change the model
 A faster sudo command
 focus on infutfield in password field each time and after closing on terminal
 minimal ls command output
-Implement context
+Implement context (history knowledge)
+Update Welcome screen when there isn't any API key set
+Implement landing page with onboarding
 handle failing commands
