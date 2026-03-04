@@ -14,6 +14,8 @@ fn main() {
             commands::shell::get_current_dir,
             commands::shell::list_directory_contents,
             commands::shell::change_directory,
+            commands::shell::read_file_for_editor,
+            commands::shell::write_file_from_editor,
             commands::ai::ask_llm,
             commands::api_key::save_api_key,
             commands::api_key::get_api_key,

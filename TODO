@@ -21,3 +21,4 @@ A faster sudo command
 focus on infutfield in password field each time and after closing on terminal
 minimal ls command output
 Implement context
+handle failing commands

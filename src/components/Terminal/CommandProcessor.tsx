@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { parseInput } from '../../utils/intentParser';
 import type { CommandProcessorProps } from './types';
+import type { EditorMode } from '../Editor/TextEditor';
 
 const useCommandProcessor = ({
     input,
@@ -13,6 +14,8 @@ const useCommandProcessor = ({
 }: CommandProcessorProps) => {
     const [showPasswordDialog, setShowPasswordDialog] = useState(false);
     const [pendingSudoCommand, setPendingSudoCommand] = useState('');
+    const [editorFile, setEditorFile] = useState<string | null>(null);
+    const [editorMode, setEditorMode] = useState<EditorMode>('nano');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,6 +61,30 @@ const useCommandProcessor = ({
         const parsed = parseInput(input);
 
         try {
+            // Handle nano/vim/nvim commands
+            if (input.trim().startsWith('nano ') || input.trim().startsWith('vim ') || 
+                input.trim().startsWith('vi ') || input.trim().startsWith('nvim ')) {
+                const parts = input.trim().split(' ');
+                const command = parts[0];
+                const filename = parts.slice(1).join(' ').trim();
+
+                if (!filename) {
+                    appendHistory({
+                        type: 'error',
+                        content: `Usage: ${command} <filename>`
+                    });
+                    setInput('');
+                    setIsProcessing(false);
+                    return;
+                }
+
+                setEditorMode(command === 'nano' ? 'nano' : 'vim');
+                setEditorFile(filename);
+                setInput('');
+                setIsProcessing(false);
+                return;
+            }
+
             if (parsed.type === "system_command") {
                 // Handle cd command separately
                 if (parsed.command.trim().startsWith("cd ")) {
@@ -186,7 +213,10 @@ const useCommandProcessor = ({
         showPasswordDialog,
         setShowPasswordDialog,
         pendingSudoCommand,
-        setPendingSudoCommand
+        setPendingSudoCommand,
+        editorFile,
+        editorMode,
+        setEditorFile
     };
 };
 

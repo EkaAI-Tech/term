@@ -1,4 +1,6 @@
 use std::process::Command;
+use std::fs;
+use std::path::Path;
 
 #[tauri::command]
 pub async fn run_shell(command: String) -> Result<String, String> {
@@ -280,4 +282,65 @@ pub fn change_directory(path: String) -> Result<String, String> {
         },
         Err(e) => Err(format!("Failed to change directory: {}", e))
     }
+}
+
+
+#[tauri::command]
+pub fn read_file_for_editor(path: String) -> Result<String, String> {
+    let expanded_path = if path.starts_with("~") {
+        if let Ok(home) = std::env::var("HOME") {
+            path.replacen("~", &home, 1)
+        } else {
+            path
+        }
+    } else {
+        path
+    };
+
+    // Make path absolute if it's relative
+    let absolute_path = if Path::new(&expanded_path).is_absolute() {
+        expanded_path
+    } else {
+        let current_dir = std::env::current_dir()
+            .map_err(|e| format!("Failed to get current directory: {}", e))?;
+        current_dir.join(&expanded_path)
+            .to_string_lossy()
+            .into_owned()
+    };
+
+    fs::read_to_string(&absolute_path)
+        .map_err(|e| format!("Failed to read file '{}': {}", absolute_path, e))
+}
+
+#[tauri::command]
+pub fn write_file_from_editor(path: String, content: String) -> Result<(), String> {
+    let expanded_path = if path.starts_with("~") {
+        if let Ok(home) = std::env::var("HOME") {
+            path.replacen("~", &home, 1)
+        } else {
+            path
+        }
+    } else {
+        path
+    };
+
+    // Make path absolute if it's relative
+    let absolute_path = if Path::new(&expanded_path).is_absolute() {
+        expanded_path
+    } else {
+        let current_dir = std::env::current_dir()
+            .map_err(|e| format!("Failed to get current directory: {}", e))?;
+        current_dir.join(&expanded_path)
+            .to_string_lossy()
+            .into_owned()
+    };
+
+    // Create parent directories if they don't exist
+    if let Some(parent) = Path::new(&absolute_path).parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create parent directories: {}", e))?;
+    }
+
+    fs::write(&absolute_path, content)
+        .map_err(|e| format!("Failed to write file '{}': {}", absolute_path, e))
 }
